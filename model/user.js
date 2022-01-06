@@ -12,20 +12,10 @@ const userSchema = new mongoose.Schema({
     validate: validator.isEmail,
     unique:true
   },
-  gender: {
-    type: String,
-    required: [true, 'A user must have a gender'],
-    enum: ['male', 'female', 'others']
-  },
   phone: {
     type: Number,
     required: [true, 'A user must have a phone number'],
     unique:true
-  },
-  age:{
-    type:Number,
-    required:[true,'A user must have an age'],
-    min:10
   },
   role:{
     type:String,
