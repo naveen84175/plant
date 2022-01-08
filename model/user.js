@@ -28,6 +28,10 @@ const userSchema = new mongoose.Schema({
   passwordConfirm: {
     type: String,
     required: true,
+  },
+  otp:{
+    type:String,
+    min:5
   }
 })
 

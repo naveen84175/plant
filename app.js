@@ -9,6 +9,8 @@ const user = require('./routes/user')
 dotenv.config({path:'./config.env'})
 const app = express();
 
+
+
 const DB = 'mongodb+srv://plantifier2020:<PASSWORD>@cluster0.casik.mongodb.net/plantifier?retryWrites=true'.replace('<PASSWORD>',process.env.PASSWORD)
 mongoose.connect(DB,
     {useNewUrlParser: true}).then(()=>{
