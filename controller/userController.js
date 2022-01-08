@@ -106,7 +106,16 @@ exports.updateUser = async(req,res)=>{
 exports.me  = async(req,res)=>{
 
 try {
-let token = req.params.token
+let token
+if(req.headers.authorization && req.headers.authorization.startsWith('Bearer'))
+    token = req.headers.authorization.split(' ')[1]
+
+    else {
+        return res.status(404).json({
+            status:'fail',
+            message:'No Token found'
+        })
+    }
 
 const decoded = await util.promisify(jwt.verify)(token, process.env.JWT_SECRET)
     
