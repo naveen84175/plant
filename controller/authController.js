@@ -15,35 +15,38 @@ const SignupToken = (id) => {
 exports.signup = async (req, res) => {
 
   try {
-    let otp = otpg.generate(5 ,{digits:true, upperCaseAlphabets: false, specialChars: false  })
+    // let otp = otpg.generate(5 ,{digits:true, upperCaseAlphabets: false, specialChars: false  })
 
-    let user = await User.findOne({email:req.body.email,phone:req.body.phone})
-    // if(!user)
+    //   let user = {
+    //     name: req.body.name,
+    //     phone: req.body.phone,
+    //     email: req.body.email,
+    //     role: req.body.role,
+    //     password: req.body.password,
+    //     passwordConfirm: req.body.passwordConfirm,
+    //     otp
+    //   }
+
     const signup = await User.create({
       name: req.body.name,
       phone: req.body.phone,
       email: req.body.email,
       role: req.body.role,
       password: req.body.password,
-      passwordConfirm: req.body.passwordConfirm,
-      otp
+      passwordConfirm: req.body.passwordConfirm
     });
 
-    // const token = SignupToken(signup._id);
+    const token = SignupToken(signup._id);
 
     
- let info =  await email(otp,process.env.SMTP_USER_ID , process.env.SMTP_USER_PASS,req.body.name,req.body.email)
+//  let info =  await email(otp,process.env.SMTP_USER_ID , process.env.SMTP_USER_PASS,req.body.name,req.body.email)
 
-    if(info.accepted.length>=1 || info.response.includes('Great success'))
+    // if(info.accepted.length>=1 || info.response.includes('Great success'))
     res.status(201).json({
-        message:'An otp has been sent to your registered email id Please check and verify'
+       status:'success',
+       user:signup,
+       token
     });
-
-    else 
-    res.status(400).json({
-      message:'Error sending mail! please try again'
-    })
-
 
   } catch (err) {
       res.status(400).json({
@@ -57,8 +60,8 @@ exports.signup = async (req, res) => {
 exports.verifyOtp = async(req,res)=>{
   try {
 
-    let {otp,email} = req.body;
-    let user = await User.findOne({email})
+    let {otp,email,name,phone ,password,passwordConfirm} = req.body
+    // let user = await User.findOne({email})
 
     if(otp!==user.otp){
       res.status(404).json({
