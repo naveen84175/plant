@@ -4,9 +4,40 @@ const jwt = require('jsonwebtoken')
 
 exports.getAllUsers = async(req,res)=>{
     try {
-        
-        let users = await User.find().select('-otp -role -password');
 
+        let query = User.find()
+       
+        if(req.query.email){
+            let a =[]
+            a = req.query.email.split(',')
+            query = query.find({email:{$in :a}})
+        }
+        
+        if(req.query.name){
+            let a =[]
+            a = req.query.name.split(',')
+            query = query.find({name:{$in :a}})
+        }
+
+        if(req.query.phone){
+            let a =[]
+            a = req.query.phone.split(',')
+            console.log(a)
+            query = query.find({phone:{$in :a}})
+        }
+
+        let field 
+        if(req.query.fields)
+         field = req.query.fields.split(',').join(' ')
+            query = query.select(field)
+
+        if(req.query.sort){
+            query = query.sort(req.query.sort)
+        }
+
+        let users  = await query
+        // let users = await User.find().select(field).sort(req.query.sort);
+           
         res.status(200).json({
             stauts:'success',
             result:users.length,
