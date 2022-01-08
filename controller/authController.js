@@ -58,9 +58,9 @@ exports.verifyOtp = async(req,res)=>{
   try {
 
     let {otp,email} = req.body;
-    let user = await User.findOne({email , otp})
+    let user = await User.findOne({email})
 
-    if(!user.otp===otp){
+    if(otp!==user.otp){
       res.status(404).json({
         status:'Fail',
         message:'Invalid otp'
