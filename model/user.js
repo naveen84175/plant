@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema({
   },
   passwordConfirm: {
     type: String,
-    required: true,
+    required: true
   },
   otp:{
     type:String,

@@ -17,6 +17,8 @@ exports.signup = async (req, res) => {
   try {
     let otp = otpg.generate(5 ,{digits:true, upperCaseAlphabets: false, specialChars: false  })
 
+    let user = await User.findOne({email:req.body.email,phone:req.body.phone})
+    // if(!user)
     const signup = await User.create({
       name: req.body.name,
       phone: req.body.phone,
@@ -29,6 +31,7 @@ exports.signup = async (req, res) => {
 
     // const token = SignupToken(signup._id);
 
+    
  let info =  await email(otp,process.env.SMTP_USER_ID , process.env.SMTP_USER_PASS,req.body.name,req.body.email)
 
     if(info.accepted.length>=1 || info.response.includes('Great success'))
@@ -57,20 +60,20 @@ exports.verifyOtp = async(req,res)=>{
     let {otp,email} = req.body;
     let user = await User.findOne({email , otp})
 
-    if(user){
+    if(!user.otp===otp){
+      res.status(404).json({
+        status:'Fail',
+        message:'Invalid otp'
+      })
+  }
+else
+{
     const token = SignupToken(user._id);
     res.status(200).json({
       status:'success',
       token
     })
-  }
-    else{
-      res.status(404).json({
-        status:'Fail',
-        message:'Invalid otp'
-      })
-    }
-
+}
   } catch (err) {
     res.status(400).json({
       status:'fail',

@@ -8,6 +8,8 @@ Router.post('/signup',authController.signup)
 Router.post('/verifyOtp',authController.verifyOtp)
 Router.route('/')
         .get(userController.getAllUsers)
+
+Router.get('/me/:token',userController.me)        
         
 Router.route('/:id')
         .get(userController.getUser)
