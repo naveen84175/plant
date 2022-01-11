@@ -1,6 +1,8 @@
 const User = require('../model/user')
 const util = require('util');
 const jwt = require('jsonwebtoken')
+const multer = require('multer')
+const upload = multer()
 
 exports.getAllUsers = async(req,res)=>{
     try {
@@ -36,7 +38,7 @@ exports.getAllUsers = async(req,res)=>{
         }
 
         let users  = await query
-        // let users = await User.find().select(field).sort(req.query.sort);
+        
            
         res.status(200).json({
             stauts:'success',
