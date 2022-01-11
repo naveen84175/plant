@@ -22,6 +22,10 @@ const uploads = multer({ storage }).array('plantImage',3)
 
 exports.getDetails = async (req, res) => {
   
+  if (!fs.existsSync('./uploads')){
+    fs.mkdirSync('./uploads');
+}
+
   uploads(req, res, async (err) => {
     try {
   
