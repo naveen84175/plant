@@ -11,7 +11,8 @@ const { encode, decode } = require('node-base64-image')
 const formData = require('form-data');
 const cloudinary = require('cloudinary').v2;
 var rem = 495;
-//https://api.gbif.org/v1/occurrence/search?scientificName=Adenium multiflorum Klotzsch
+// https://en.wikipedia.org/wiki/Euphorbia
+//https://api.gbif.org/v1/occurrence/search?scientificName=Euphorbia 
 cloudinary.config({
   cloud_name: 'dl9gsmvqc',
   api_key: '552698194125665',
@@ -40,6 +41,7 @@ exports.getAllPosts = async (req, res) => {
 
     res.status(200).json({
       status: 'success',
+      results: data.length,
       data
     })
 
@@ -55,9 +57,18 @@ exports.createPost = async (req, res) => {
   try {
 
     let token = req.headers.authorization.split(' ')[1]
+
+    if (!token)
+      return res.status(400).json({
+        status: 'fail',
+        message: 'You are not logged in! Please login to get access'
+      })
+
+
     let decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET)
     let filename = `userUploadedImage-${Date.now()}-${decoded.id}`
-   
+
+
     let base64String = req.body.base64
 
     await decode(base64String, { fname: filename, ext: 'jpeg' })
@@ -68,13 +79,36 @@ exports.createPost = async (req, res) => {
       method: 'GET',
       url: `https://my-api.plantnet.org/v2/identify/all?api-key=${process.env.PLANT_NET_KEYASAWA}&images=${upload.secure_url}`
     })
-      
-  let plant = new Plant({
-      userUploadedImage:[upload.secure_url],
-      posts: resp.data.results,
-      createdBy: decoded.id
+
+    if (resp.data.results.length === 0)
+      return res.status(200).json({
+        status: 'success',
+        message: 'No Results Found 😢'
+      })
+
+    let scientific_name = resp.data.results.splice(0, 3)[0].species.scientificName
+
+    const wikkiLink = `https://en.wikipedia.org/wiki/${scientific_name}`
+
+    let imageData = await axios({
+      method: 'GET',
+      url: `https://api.gbif.org/v1/occurrence/search?scientificName=${scientific_name}`
     })
-    let data = await plant.save()
+
+    let images = imageData.data.results.splice(0, 3).map(result => {
+  
+        return result.media[0].identifier
+    })
+
+
+    let plant = new Plant({
+        userUploadedImage:[upload.secure_url],
+        wikkipediaLink:wikkiLink,
+        resultImages:images,
+        posts: resp.data.results,
+        createdBy: decoded.id
+      })
+      let data = await plant.save()
 
 
     res.status(200).json({
@@ -88,9 +122,10 @@ exports.createPost = async (req, res) => {
 
 
   } catch (err) {
-    await execute(`rm ${filename}.jpeg`).then(() => {
-      console.log('files deleted successfully')
-    })
+    // await execute(`rm ${filename}.jpeg`).then(() => {
+    //   console.log('files deleted successfully')
+    // })
+    console.log(err)
     res.status(400).json({
       status: 'fail',
       message: err.message
