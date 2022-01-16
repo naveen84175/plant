@@ -5,6 +5,7 @@ const dotenv = require('dotenv')
 const cookieParser = require('cookie-parser')
 const user = require('./routes/user')
 const plant = require('./routes/plant')
+const note = require('./routes/note')
 dotenv.config({ path: './config.env' })
 const app = express();
 
@@ -30,6 +31,8 @@ app.get('/', (req, res) => {
 
 app.use('/api/v1/user', user)
 app.use('/api/v1/plant',plant)
+app.use('/api/v1/note',note)
+
 
 app.listen(process.env.PORT, () => {
     console.log('server is running at port 3000')

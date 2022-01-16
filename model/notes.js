@@ -8,12 +8,12 @@ const notesSchema = new mongoose.Schema({
         required:true,
         default:""
     },
-     user:{
+     userid:{
         type:mongoose.Schema.ObjectId,
         ref:'User',
         required:true
     },
-    post:{
+    postid:{
         type:mongoose.Schema.ObjectId,
         ref:'Plant',
         required:true
