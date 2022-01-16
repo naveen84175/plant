@@ -10,14 +10,17 @@ const fs = require('fs')
 const { encode, decode } = require('node-base64-image')
 const formData = require('form-data');
 const cloudinary = require('cloudinary').v2;
+
 var rem = 495;
-// https://en.wikipedia.org/wiki/Euphorbia
+// https://en.wikipedia.org/wiki/Arecaceae
 //https://api.gbif.org/v1/occurrence/search?scientificName=Euphorbia 
 cloudinary.config({
   cloud_name: 'dl9gsmvqc',
   api_key: '552698194125665',
   api_secret: 'LOH1HgW62BXk8xXBY27e-KSz_04'
 });
+
+let secure_url = 'https://res.cloudinary.com/dl9gsmvqc/image/upload/v1642104241/ioa0duarcrirpiuuwaja.jpg'
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -56,6 +59,11 @@ exports.getAllPosts = async (req, res) => {
 exports.createPost = async (req, res) => {
   try {
 
+    if (!req.headers.authorization)
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Please Provide authirization in headers'
+      })
     let token = req.headers.authorization.split(' ')[1]
 
     if (!token)
@@ -80,36 +88,68 @@ exports.createPost = async (req, res) => {
       url: `https://my-api.plantnet.org/v2/identify/all?api-key=${process.env.PLANT_NET_KEYASAWA}&images=${upload.secure_url}`
     })
 
+
     if (resp.data.results.length === 0)
       return res.status(200).json({
         status: 'success',
         message: 'No Results Found 😢'
       })
 
-    let scientific_name = resp.data.results.splice(0, 3)[0].species.scientificName
 
+    let posts = []
+
+    let scientificNamesForImage = resp.data.results.map(res => {
+      return res.species.scientificNameWithoutAuthor
+    })
+
+    for (const scientific_image_name of scientificNamesForImage) {
+      // scientificNamesForImage.forEach(scientific_image_name =>{
+      let imageData = await axios({
+        method: 'GET',
+        url: `https://api.gbif.org/v1/occurrence/search?scientificName=${scientific_image_name}`
+      })
+
+      let images = imageData.data.results.splice(0, 3).map(result => {
+        if (result.media[0])
+          return result.media[0].identifier
+      })
+
+      // console.log('this is images' , images)
+
+      let obj = {}
+
+      obj.images = images
+
+      let plant = resp.data.results.filter(res => {
+        return res.species.scientificNameWithoutAuthor === scientific_image_name
+      })
+
+      //  console.log('this is plant object' , plant)
+
+      obj.score = plant[0].score
+      obj.species = plant[0].species
+      obj.gbif = plant[0].gbif
+
+      //  console.log('this is obj' , obj)
+
+      posts.push(obj)
+
+    }//for loop
+
+    // console.log('this is posts '  , posts)
+
+    let scientific_name = resp.data.results.splice(0, 3)[0].species.family.scientificName
     const wikkiLink = `https://en.wikipedia.org/wiki/${scientific_name}`
-
-    let imageData = await axios({
-      method: 'GET',
-      url: `https://api.gbif.org/v1/occurrence/search?scientificName=${scientific_name}`
-    })
-
-    let images = imageData.data.results.splice(0, 3).map(result => {
-  
-        return result.media[0].identifier
-    })
 
 
     let plant = new Plant({
-        userUploadedImage:[upload.secure_url],
-        wikkipediaLink:wikkiLink,
-        resultImages:images,
-        posts: resp.data.results,
-        createdBy: decoded.id
-      })
-      let data = await plant.save()
+      userUploadedImage: [upload.secure_url],
+      wikkipediaLink: wikkiLink,
+      posts,
+      createdBy: decoded.id
+    })
 
+    let data = await plant.save()
 
     res.status(200).json({
       status: 'success',
@@ -122,10 +162,11 @@ exports.createPost = async (req, res) => {
 
 
   } catch (err) {
-    // await execute(`rm ${filename}.jpeg`).then(() => {
-    //   console.log('files deleted successfully')
-    // })
     console.log(err)
+    await execute(`rm *.jpeg`).then(() => {
+      console.log('files deleted successfully')
+    })
+
     res.status(400).json({
       status: 'fail',
       message: err.message

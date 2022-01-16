@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 
 const imageResults = new mongoose.Schema({
+        images:[String],
         score:Number,
         species:{
             scientificNameWithoutAuthor:String,
@@ -26,7 +27,6 @@ const imageResults = new mongoose.Schema({
 
 const plantSchema = new mongoose.Schema({
     userUploadedImage:[String],
-    resultImages:[String],
     wikkipediaLink:String,
     posts:[imageResults],
     timeStamp:{
@@ -40,6 +40,11 @@ const plantSchema = new mongoose.Schema({
 
 })
 
+plantSchema.pre("save",function(next){
+
+    this.timeStamp  = new Date(Date.now())
+
+})
 
 const Plant  = new mongoose.model('Plant',plantSchema)
 

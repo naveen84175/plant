@@ -13,7 +13,7 @@ Router.route('/')
         .get(userController.getAllUsers)
 
 Router.get('/me/',userController.me)        
-        
+Router.patch('/updateMe',userController.updateMe)   
 Router.route('/:id')
         .get(userController.getUser)
         .delete(userController.deleteUser)
