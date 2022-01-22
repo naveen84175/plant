@@ -30,8 +30,7 @@ const plantSchema = new mongoose.Schema({
     wikkipediaLink:String,
     posts:[imageResults],
     timeStamp:{
-        type:Date,
-        default:Date.now()
+        type:String
     },
     createdBy:{
         type:mongoose.Schema.ObjectId,
@@ -40,10 +39,12 @@ const plantSchema = new mongoose.Schema({
 
 })
 
+
 plantSchema.pre("save",function(next){
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
 
-    this.timeStamp  = new Date(Date.now())
-
+    this.timeStamp  = new Date().toLocaleTimeString('en', options)
+    next()
 })
 
 const Plant  = new mongoose.model('Plant',plantSchema)

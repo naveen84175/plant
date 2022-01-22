@@ -11,4 +11,7 @@ Router.post('/getDetails',plantcontroller.getDetails)
 Router.post('/createPost' , plantcontroller.createPost)
 
 Router.get('/getAllPosts',plantcontroller.getAllPosts)
+Router.delete('/deletePost', plantcontroller.deletePost)
+
+
 module.exports = Router

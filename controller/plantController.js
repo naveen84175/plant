@@ -37,10 +37,15 @@ const uploads = multer({ storage }).array('plantImage', 3)
 exports.getAllPosts = async (req, res) => {
 
   try {
-    let data = await Plant.find().sort('-_id').populate({
+    let query =  Plant.find({},{posts:{$slice:[0,1]}}).sort('-_id').populate({
       path: 'createdBy',
-      select: 'name -_id'
+      select: 'name -_id '
     })
+    
+    if(req.query.id)
+      query = query.find({createdBy:req.query.id})
+
+    let data = await query
 
     res.status(200).json({
       status: 'success',
@@ -62,7 +67,7 @@ exports.createPost = async (req, res) => {
     if (!req.headers.authorization)
       return res.status(400).json({
         status: 'fail',
-        message: 'Please Provide authirization in headers'
+        message: 'Please Provide authorization in headers'
       })
     let token = req.headers.authorization.split(' ')[1]
 
@@ -75,6 +80,7 @@ exports.createPost = async (req, res) => {
 
     let decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET)
     let filename = `userUploadedImage-${Date.now()}-${decoded.id}`
+    // let filename = `userUploadedImage-${Date.now()}`
 
 
     let base64String = req.body.base64
@@ -84,10 +90,11 @@ exports.createPost = async (req, res) => {
     const upload = await cloudinary.uploader.upload(`${filename}.jpeg`)
 
     let resp = await axios({
-      method: 'GET',
-      url: `https://my-api.plantnet.org/v2/identify/all?api-key=${process.env.PLANT_NET_KEYASAWA}&images=${upload.secure_url}`
+      method: 'get',
+      url: `https://my-api.plantnet.org/v2/identify/all?api-key=2b10Ls5cojNXt5uHrPjBniO&images=${upload.secure_url}`,
     })
 
+    // console.log(resp.data.results)
 
     if (resp.data.results.length === 0)
       return res.status(200).json({
@@ -153,6 +160,10 @@ exports.createPost = async (req, res) => {
 
     res.status(200).json({
       status: 'success',
+      // result:resp.data.results,
+      // scientific_name,
+      // wikkiLink,
+      // posts,
       data
     })
 
@@ -240,3 +251,22 @@ exports.getDetails = async (req, res) => {
 
 
 }//get details
+
+exports.deletePost = async(req,res)=>{
+
+try {
+
+  await Plant.findByIdAndDelete(req.body.id)
+
+    res.status(200).json({
+      status:'success'
+    })
+
+} catch (err) {
+  res.status(404).json({
+    status: 'fail',
+    message: err.message
+  })
+}
+
+}
