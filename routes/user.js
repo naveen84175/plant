@@ -12,12 +12,14 @@ Router.post('/verifyOtp',authController.verifyOtp)
 Router.route('/')
         .get(userController.getAllUsers)
 
+Router.get('/getleaderboard',userController.getleaderBoard)
 Router.get('/me/',userController.me)        
 Router.patch('/updateMe',userController.updateMe)   
 Router.route('/:id')
         .get(userController.getUser)
         .delete(userController.deleteUser)
         .patch(userController.updateUser)
+
 
 
 module.exports = Router

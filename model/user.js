@@ -32,6 +32,11 @@ const userSchema = new mongoose.Schema({
   otp:{
     type:String,
     min:5
+  },
+  searches:{
+    type:Number,
+    default:0,
+    min:0
   }
 })
 

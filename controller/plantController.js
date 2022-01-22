@@ -171,6 +171,7 @@ exports.createPost = async (req, res) => {
       console.log('files deleted successfully')
     })
 
+    await User.findByIdAndUpdate(decoded.id , {$inc:{searches:1}})
 
   } catch (err) {
     console.log(err)

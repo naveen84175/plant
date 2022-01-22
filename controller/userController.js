@@ -163,6 +163,26 @@ exports.updateMe = async (req, res) => {
 			message: err.message
 		})
 	}
+}
 
+
+exports.getleaderBoard = async(req,res)=>{
+
+    try {
+     
+        const data = await User.find().select('name email searches -_id').sort({searches:-1})
+
+        res.status(200).json({
+            status:'success',
+            data
+        })
+
+    } catch (err) {
+		console.log(err)
+        res.status(400).json({
+            status: 'fail',
+            message: err.message
+          })
+    }
 
 }
