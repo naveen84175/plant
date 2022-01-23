@@ -1,8 +1,16 @@
 const User = require('../model/user')
 const util = require('util');
 const jwt = require('jsonwebtoken')
-const multer = require('multer')
-const upload = multer()
+const cloudinary = require('cloudinary').v2;
+const { encode, decode } = require('node-base64-image')
+const { promisify } = require('util')
+
+cloudinary.config({
+	cloud_name: 'dl9gsmvqc',
+	api_key: '552698194125665',
+	api_secret: 'LOH1HgW62BXk8xXBY27e-KSz_04'
+});
+
 
 exports.getAllUsers = async (req, res) => {
 	try {
@@ -147,13 +155,13 @@ exports.me = async (req, res) => {
 
 exports.updateMe = async (req, res) => {
 	try {
-		let {id ,...data} = req.body
+		let { id, ...data } = req.body
 
-		let updateUser = await User.findByIdAndUpdate(id , data,{new:true})
+		let updateUser = await User.findByIdAndUpdate(id, data, { new: true })
 
 		res.status(200).json({
-			status:'success',
-			data:updateUser
+			status: 'success',
+			data: updateUser
 		})
 
 	} catch (err) {
@@ -166,23 +174,75 @@ exports.updateMe = async (req, res) => {
 }
 
 
-exports.getleaderBoard = async(req,res)=>{
+exports.getleaderBoard = async (req, res) => {
 
-    try {
-     
-        const data = await User.find().select('name email searches -_id').sort({searches:-1})
+	try {
 
-        res.status(200).json({
-            status:'success',
-            data
-        })
+		const data = await User.find().select('name email searches -_id').sort({ searches: -1 })
 
-    } catch (err) {
-		console.log(err)
-        res.status(400).json({
-            status: 'fail',
-            message: err.message
-          })
-    }
+		res.status(200).json({
+			status: 'success',
+			data
+		})
+
+	} catch (err) {
+		res.status(400).json({
+			status: 'fail',
+			message: err.message
+		})
+	}
+
+}
+
+
+exports.setProfilePicture = async (req, res) => {
+
+	try {
+
+		if (!req.headers.authorization)
+			return res.status(400).json({
+				status: 'fail',
+				message: 'Please Provide authorization in headers'
+			})
+
+		let token = req.headers.authorization.split(' ')[1]
+
+		if (!token)
+			return res.status(400).json({
+				status: 'fail',
+				message: 'You are not logged in! Please login to get access'
+			})
+
+
+		let decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET)
+		let filename = `userProfileImage-${Date.now()}-${decoded.id}`
+
+
+		let base64String = req.body.base64
+
+		await decode(base64String, { fname: filename, ext: 'jpeg' })
+
+		const upload = await cloudinary.uploader.upload(`${filename}.jpeg`)
+
+		await User.updateOne({ _id: decoded.id }, { profilePhoto: upload.secure_url }, { new: true })
+
+		res.status(200).json({
+			status: 'success',
+			message: 'Profile picture updated successfully'
+		})
+
+
+		await execute(`rm ${filename}.jpeg`).then(() => {
+			console.log('files deleted successfully')
+		})
+
+
+	} catch (err) {
+
+		res.status(400).json({
+			status: 'fail',
+			message: err.message
+		})
+	}
 
 }

@@ -10,16 +10,19 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'A user must have email'],
     validate: validator.isEmail,
-    unique:true
+    unique: true
   },
   phone: {
     type: Number,
     required: [true, 'A user must have a phone number'],
-    unique:true
+    unique: true
   },
-  role:{
-    type:String,
-    enum:['user','teacher','dev','admin','test']
+  profilePhoto: {
+    type: String
+  },
+  role: {
+    type: String,
+    enum: ['user', 'teacher', 'dev', 'admin', 'test']
   },
   password: {
     type: String,
@@ -29,14 +32,14 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  otp:{
-    type:String,
-    min:5
+  otp: {
+    type: String,
+    min: 5
   },
-  searches:{
-    type:Number,
-    default:0,
-    min:0
+  searches: {
+    type: Number,
+    default: 0,
+    min: 0
   }
 })
 
@@ -60,5 +63,5 @@ userSchema.methods.correctPassword = async function (
 
 
 
-const User = new mongoose.model('User',userSchema)
+const User = new mongoose.model('User', userSchema)
 module.exports = User

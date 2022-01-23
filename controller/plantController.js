@@ -63,6 +63,78 @@ exports.getAllPosts = async (req, res) => {
   }
 }
 
+exports.getPost = async (req, res) => {
+
+  try {
+
+    if (!req.body.postid)
+      return res.status(400).json({
+        status: 'fail',
+        message: 'cannot found post'
+      })
+
+    const data = await Plant.findById(req.body.postid).populate({
+      path: 'createdBy',
+      select: 'name -_id '
+    })
+
+    res.status(200).json({
+      status: 'success',
+      data
+    })
+
+
+  } catch (err) {
+    res.status(404).json({
+      status: 'fail',
+      message: err.message
+    })
+  }
+
+}
+
+exports.getMyPosts = async (req, res) => {
+
+  try {
+    if (!req.headers.authorization)
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Please Provide authorization in headers'
+      })
+    let token = req.headers.authorization.split(' ')[1]
+
+    if (!token)
+      return res.status(400).json({
+        status: 'fail',
+        message: 'You are not logged in! Please login to get access'
+      })
+
+
+    let decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET)
+
+
+    let posts = await Plant.find({ createdBy: decoded.id }, { posts: { $slice: [0, 1] } }).sort('-_id').populate({
+      path: 'createdBy',
+      select: 'name -_id '
+    }).lean()
+
+
+    res.status(200).json({
+      status: 'success',
+      results: posts.length,
+      data: posts
+    })
+
+
+  } catch (err) {
+    res.status(404).json({
+      status: 'fail',
+      message: err.message
+    })
+  }
+
+}
+
 exports.createPost = async (req, res) => {
   try {
 
