@@ -178,7 +178,7 @@ exports.getleaderBoard = async (req, res) => {
 
 	try {
 
-		const data = await User.find().select('name email searches -_id').sort({ searches: -1 })
+		const data = await User.find().select('name profilePhoto email searches -_id').sort({ searches: -1 })
 
 		res.status(200).json({
 			status: 'success',
