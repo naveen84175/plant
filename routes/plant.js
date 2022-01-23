@@ -7,7 +7,7 @@ const upload = multer()
 Router.use(upload.array())
 
 // Router.use(upload.array)
-Router.post('/getDetails',plantcontroller.getDetails)
+
 Router.post('/createPost' , plantcontroller.createPost)
 
 Router.get('/getAllPosts',plantcontroller.getAllPosts)

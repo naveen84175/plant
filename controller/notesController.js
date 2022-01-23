@@ -1,6 +1,8 @@
 const Note = require('../model/notes')
 const { promisify } = require('util')
 const jwt = require('jsonwebtoken')
+const Plant = require('../model/plant')
+
 
 exports.getAllNotes = async (req, res) => {
 
@@ -22,22 +24,35 @@ exports.getAllNotes = async (req, res) => {
 
 
 		let decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET)
+	
 
-		const data = await Note.find({ userid: decoded.id }).populate([{
+		// const data = await Note.find({ userid: decoded.id }).populate([{
+		// 	path: 'postid'
+		// },
+		// {
+		// 	path: 'userid',
+		// 	select: 'name -_id'
+		// }
+		// ])
+
+	  Note.find({ userid: decoded.id }).populate([{
 			path: 'postid'
 		},
 		{
 			path: 'userid',
 			select: 'name -_id'
 		}
-		])
+		]).sort({ _id: -1 }).then((data)=>{
+			res.status(200).json({
+				status: 'success',
+				results: data.length,
+				data
+			})
 
-		res.status(200).json({
-			status: 'success',
-			results: data.length,
-			data
 		})
 
+
+	
 
 	} catch (err) {
 		res.status(400).json({
@@ -73,17 +88,18 @@ exports.createNote = async (req, res) => {
 
 		let { postid, note } = req.body
 
+
 		let newNote = new Note({
 			note,
 			postid,
 			userid: decoded.id
 		})
 
-		await newNote.save();
+		let data = await newNote.save();
 
 		res.status(200).json({
 			status: 'success',
-			data: newNote
+			data
 		})
 
 	} catch (err) {

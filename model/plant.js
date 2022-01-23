@@ -41,9 +41,8 @@ const plantSchema = new mongoose.Schema({
 
 
 plantSchema.pre("save",function(next){
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-
-    this.timeStamp  = new Date().toLocaleTimeString('en', options)
+   
+    this.timeStamp  = new Date().toISOString().split('T')[0].split('-').reverse().join('-')
     next()
 })
 

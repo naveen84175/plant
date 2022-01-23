@@ -1,14 +1,14 @@
 const Plant = require('../model/plant')
 const User = require('../model/user')
-const multer = require('multer')
+// const multer = require('multer')
 const jwt = require('jsonwebtoken')
 const { exec } = require('child_process')
 const { promisify } = require('util');
 const execute = promisify(exec)
 const axios = require('axios')
-const fs = require('fs')
+// const fs = require('fs')
 const { encode, decode } = require('node-base64-image')
-const formData = require('form-data');
+// const formData = require('form-data');  
 const cloudinary = require('cloudinary').v2;
 
 var rem = 495;
@@ -20,30 +20,32 @@ cloudinary.config({
   api_secret: 'LOH1HgW62BXk8xXBY27e-KSz_04'
 });
 
-let secure_url = 'https://res.cloudinary.com/dl9gsmvqc/image/upload/v1642104241/ioa0duarcrirpiuuwaja.jpg'
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, './uploads')
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now()
-    cb(null, file.fieldname + '-' + uniqueSuffix + "." + file.mimetype.split('/')[1])
-  }
-})
+// const storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, './uploads')
+//   },
+//   filename: function (req, file, cb) {
+//     const uniqueSuffix = Date.now()
+//     cb(null, file.fieldname + '-' + uniqueSuffix + "." + file.mimetype.split('/')[1])
+//   }
+// })
 
-const uploads = multer({ storage }).array('plantImage', 3)
+// const uploads = multer({ storage }).array('plantImage', 3)
 
 exports.getAllPosts = async (req, res) => {
 
   try {
-    let query =  Plant.find({},{posts:{$slice:[0,1]}}).sort('-_id').populate({
+    let query = Plant.find({}, { posts: { $slice: [0, 1] } }).sort('-_id').populate({
       path: 'createdBy',
       select: 'name -_id '
-    })
-    
-    if(req.query.id)
-      query = query.find({createdBy:req.query.id})
+    }).lean()
+
+    if (req.query.id)
+      query = query.find({ createdBy: req.query.id })
+
+    if (req.query.postid)
+      query = query.find({ _id: req.query.postid })
 
     let data = await query
 
@@ -171,7 +173,7 @@ exports.createPost = async (req, res) => {
       console.log('files deleted successfully')
     })
 
-    await User.findByIdAndUpdate(decoded.id , {$inc:{searches:1}})
+    await User.findByIdAndUpdate(decoded.id, { $inc: { searches: 1 } })
 
   } catch (err) {
     console.log(err)
@@ -190,84 +192,21 @@ exports.createPost = async (req, res) => {
 
 
 
+exports.deletePost = async (req, res) => {
 
-exports.getDetails = async (req, res) => {
+  try {
 
-  if (!fs.existsSync('./uploads')) {
-    fs.mkdirSync('./uploads');
-  }
-
-  uploads(req, res, async (err) => {
-    try {
-
-      let form = new formData();
-
-      // req.files.forEach(file => {
-      //   form.append('images', fs.createReadStream(`./uploads/${file.filename}`))
-      // })
-
-      let base64 = req.body.base64
-      await decode(base64, { fname: 'example', ext: 'jpg' })
-      form.append('images', fs.createReadStream('./example.jpg'))
-      console.log(form)
-      if (rem === 0)
-        return res.status(400).json({
-          status: 'fail',
-          message: 'Daily limit crossed'
-        })
-
-      let resp = await axios.post(
-        `https://my-api.plantnet.org/v2/identify/all?api-key=${process.env.PLANT_NET_KEYASAWA}`,
-        form, {
-        headers: form.getHeaders()
-      }
-      )
-
-
-      rem = resp.data.remainingIdentificationRequests
-
-      res.status(200).json({
-        status: 'success',
-        results: resp.data.results.length,
-        data: resp.data.results
-      })
-
-
-      await execute('rm example.jpg').then(() => {
-        console.log('files deleted successfully')
-      })
-
-    } catch (err) {
-      console.log(err)
-      res.status(404).json({
-        status: 'fail',
-        message: err.message
-      })
-
-      // await execute('rm ./uploads/*').then(() => {
-      //   console.log('files deleted successfully')
-      // })
-    }
-  })//uploads
-
-
-}//get details
-
-exports.deletePost = async(req,res)=>{
-
-try {
-
-  await Plant.findByIdAndDelete(req.body.id)
+    await Plant.findByIdAndDelete(req.body.id)
 
     res.status(200).json({
-      status:'success'
+      status: 'success'
     })
 
-} catch (err) {
-  res.status(404).json({
-    status: 'fail',
-    message: err.message
-  })
-}
+  } catch (err) {
+    res.status(404).json({
+      status: 'fail',
+      message: err.message
+    })
+  }
 
 }
