@@ -9,7 +9,7 @@ Router.use(upload.array())
 // Router.use(upload.array)
 
 Router.post('/createPost', plantcontroller.createPost)
-Router.get('/getPost', plantcontroller.getPost)
+Router.post('/getPost', plantcontroller.getPost)
 Router.get('/getMyPosts', plantcontroller.getMyPosts)
 Router.get('/getAllPosts', plantcontroller.getAllPosts)
 Router.delete('/deletePost', plantcontroller.deletePost)
