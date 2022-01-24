@@ -155,9 +155,23 @@ exports.me = async (req, res) => {
 
 exports.updateMe = async (req, res) => {
 	try {
-		let { id, ...data } = req.body
 
-		let updateUser = await User.findByIdAndUpdate(id, data, { new: true })
+		let token
+		if (req.headers.authorization && req.headers.authorization.startsWith('Bearer'))
+			token = req.headers.authorization.split(' ')[1]
+
+		else {
+			return res.status(404).json({
+				status: 'fail',
+				message: 'No Token found'
+			})
+		}
+
+		let decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET)
+
+		let {...data } = req.body
+
+		let updateUser = await User.findByIdAndUpdate(decoded.id, data, { new: true })
 
 		res.status(200).json({
 			status: 'success',
