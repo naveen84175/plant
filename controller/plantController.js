@@ -1,14 +1,13 @@
 const Plant = require('../model/plant')
 const User = require('../model/user')
-// const multer = require('multer')
 const jwt = require('jsonwebtoken')
 const { exec } = require('child_process')
 const { promisify } = require('util');
 const execute = promisify(exec)
 const axios = require('axios')
-// const fs = require('fs')
 const { encode, decode } = require('node-base64-image')
-// const formData = require('form-data');  
+const NodeCache = require('node-cache')
+const myCache = new NodeCache()
 const cloudinary = require('cloudinary').v2;
 
 var rem = 495;
@@ -36,6 +35,12 @@ cloudinary.config({
 exports.getAllPosts = async (req, res) => {
 
   try {
+
+    if(myCache.has('getAllPost')){
+      let cachedData = myCache.get('getAllPost')
+      console.log(myCache.getTtl('getAllPost'))
+      return  res.status(200).json((cachedData))
+}
     let query = Plant.find({}, { posts: { $slice: [0, 1] } }).sort('-_id').populate({
       path: 'createdBy',
       select: 'name -_id '
@@ -48,6 +53,8 @@ exports.getAllPosts = async (req, res) => {
       query = query.find({ _id: req.query.postid })
 
     let data = await query
+
+    myCache.set('getAllPost',data)
 
     res.status(200).json({
       status: 'success',
@@ -151,7 +158,7 @@ exports.createPost = async (req, res) => {
         message: 'You are not logged in! Please login to get access'
       })
 
-
+      myCache.del('getAllPosts')
     let decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET)
     let filename = `userUploadedImage-${Date.now()}-${decoded.id}`
     // let filename = `userUploadedImage-${Date.now()}`
