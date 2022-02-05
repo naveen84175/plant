@@ -36,11 +36,6 @@ exports.getAllPosts = async (req, res) => {
 
   try {
 
-    if(myCache.has('getAllPost')){
-      let cachedData = myCache.get('getAllPost')
-      console.log(myCache.getTtl('getAllPost'))
-      return  res.status(200).json((cachedData))
-}
     let query = Plant.find({}, { posts: { $slice: [0, 1] } }).sort('-_id').populate({
       path: 'createdBy',
       select: 'name -_id '
@@ -54,7 +49,6 @@ exports.getAllPosts = async (req, res) => {
 
     let data = await query
 
-    myCache.set('getAllPost',data)
 
     res.status(200).json({
       status: 'success',
