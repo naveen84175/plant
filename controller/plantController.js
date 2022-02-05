@@ -158,7 +158,7 @@ exports.createPost = async (req, res) => {
         message: 'You are not logged in! Please login to get access'
       })
 
-      myCache.del('getAllPosts')
+      myCache.del('getAllPost')
     let decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET)
     let filename = `userUploadedImage-${Date.now()}-${decoded.id}`
     // let filename = `userUploadedImage-${Date.now()}`
