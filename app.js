@@ -33,7 +33,10 @@ app.use('/api/v1/user', user)
 app.use('/api/v1/plant',plant)
 app.use('/api/v1/note',note)
 
+process.on('uncaughtException',(error, source) => {
+   console.log(error)
+ })
 
 app.listen(process.env.PORT, () => {
-    console.log('server is running at port 3000')
+    console.log(`server is running at port ${process.env.PORT}`)
 })
