@@ -119,3 +119,14 @@ exports.login = async (req, res) => {
   }
 
 }
+
+exports.logout = async(req,res)=>{
+  try {
+    res.clearCookie('jwt')
+  } catch (err) {
+    res.status(400).json({
+      status:'fail',
+      message:err.message
+    })
+  }
+}

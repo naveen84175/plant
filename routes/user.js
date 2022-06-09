@@ -7,6 +7,7 @@ const upload = multer()
 
 Router.use(upload.array())
 Router.post('/login', authController.login)
+Router.post('/logout',authController.logout)
 Router.post('/signup', authController.signup)
 Router.post('/verifyOtp', authController.verifyOtp)
 Router.route('/')

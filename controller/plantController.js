@@ -6,8 +6,7 @@ const { promisify } = require('util');
 const execute = promisify(exec)
 const axios = require('axios')
 const { encode, decode } = require('node-base64-image')
-const NodeCache = require('node-cache')
-const myCache = new NodeCache()
+
 const cloudinary = require('cloudinary').v2;
 
 var rem = 495;
@@ -138,7 +137,7 @@ exports.getMyPosts = async (req, res) => {
 
 exports.createPost = async (req, res) => {
   try {
-
+    console.log('gefsdfd')
     if (!req.headers.authorization)
       return res.status(400).json({
         status: 'fail',
@@ -152,7 +151,7 @@ exports.createPost = async (req, res) => {
         message: 'You are not logged in! Please login to get access'
       })
 
-      myCache.del('getAllPost')
+    
     let decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET)
     let filename = `userUploadedImage-${Date.now()}-${decoded.id}`
     // let filename = `userUploadedImage-${Date.now()}`
